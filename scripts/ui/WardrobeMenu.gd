@@ -46,7 +46,7 @@ func _ready() -> void:
 		button.add_theme_font_size_override("font_size", 12)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		presets.add_child(button)
-	feedback = UIFactory.paragraph("Одежду видно на руках, при взгляде вниз и в зеркалах. Элементы можно сочетать.", 14)
+	feedback = UIFactory.paragraph("Одежду видно на руках и на персонаже в зеркалах. Элементы можно сочетать.", 14)
 	controls.add_child(feedback)
 	column.add_child(UIFactory.button("ГОТОВО / ПОСМОТРЕТЬ В ЗЕРКАЛО   ·   ESC", func() -> void: closed.emit(), true))
 

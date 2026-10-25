@@ -14,6 +14,8 @@ var settings_return := "menu"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.window_set_title("Смена №13 / " + Game.BUILD_VERSION)
 	canvas = CanvasLayer.new()
 	canvas.layer = 10
 	add_child(canvas)

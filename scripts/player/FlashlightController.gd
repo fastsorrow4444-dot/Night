@@ -11,10 +11,25 @@ var raise_amount := 0.0
 var press_amount := 0.0
 var world_model: FlashlightModel
 var view_model: FlashlightModel
+var spill_light: SpotLight3D
 @onready var actor: PlayerController = get_parent()
 
 func _ready() -> void:
 	actor.torch.visible = false
+	actor.torch.light_energy = 2.2
+	actor.torch.spot_attenuation = 1.5
+	actor.torch.light_color = Color("f5ebd7")
+	actor.torch.light_cull_mask = 1 | 4
+	spill_light = SpotLight3D.new()
+	spill_light.name = "FlashlightSoftSpill"
+	spill_light.light_energy = 0.16
+	spill_light.light_color = Color("e1e6ed")
+	spill_light.spot_range = 12
+	spill_light.spot_angle = 55
+	spill_light.spot_attenuation = 1.5
+	spill_light.light_cull_mask = 1 | 4
+	spill_light.visible = false
+	actor.camera.add_child(spill_light)
 	world_model = FlashlightModel.new()
 	world_model.name = "BeltAndHandFlashlight"
 	world_model.render_layer = 8
@@ -101,19 +116,24 @@ func _switch(on: bool) -> void:
 	if is_lit != on:
 		is_lit = on
 		actor.torch.visible = on
+		spill_light.visible = on
 		Audio.effect("click", -8.0)
 
 func _sync_models() -> void:
 	if not is_instance_valid(world_model) or not is_instance_valid(actor.body_visual):
 		return
+	actor.view_arms.update_pose(raise_amount, press_amount)
+	actor.body_visual.update_pose()
 	var belt := actor.to_global(Vector3(0.225, 0.98 - (1.64 - actor.head.position.y) * 0.6, 0.015))
-	var hand := actor.body_visual.right_hand_position() + actor.global_basis * Vector3(0, -0.035, -0.035)
-	world_model.global_position = belt.lerp(hand, raise_amount)
-	world_model.global_rotation = actor.global_rotation + Vector3(lerpf(PI / 2.0, actor.head.rotation.x, raise_amount), 0, -0.05 * raise_amount)
-	world_model.set_render_layer(8 if raise_amount < 0.02 else 2)
+	world_model.global_transform = actor.view_arms.torch_global_transform()
+	if raise_amount < 0.001:
+		world_model.global_transform = Transform3D(actor.global_basis * Basis(Vector3.RIGHT, PI / 2), belt)
+	world_model.set_render_layer(2)
 	view_model.visible = raise_amount > 0.025
-	view_model.position = Vector3(0.33, -0.66, -0.12).lerp(Vector3(0.265, -0.32, -0.56), raise_amount)
-	view_model.rotation = Vector3(lerpf(PI / 2.0, 0.0, raise_amount), 0, -0.05 * raise_amount)
-	actor.torch.position = view_model.position + Vector3(0, 0, -0.17)
+	view_model.transform = actor.view_arms.torch_pose
+	var lens := view_model.position + Vector3(0, 0, -0.17)
+	var downward := smoothstep(0.65, 1.2, -actor.head.rotation.x)
+	actor.torch.position = lens.lerp(Vector3(0.14,-0.08,-0.18),downward)
+	spill_light.transform = actor.torch.transform
 	world_model.update_switch(is_lit, press_amount)
 	view_model.update_switch(is_lit, press_amount)

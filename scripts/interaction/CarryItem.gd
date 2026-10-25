@@ -9,14 +9,27 @@ func _ready() -> void:
 	continuous_cd = true
 	var collider := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(0.42, 0.36, 0.42)
+	shape.size = Vector3(0.32, 0.26, 0.30)
 	collider.shape = shape
 	add_child(collider)
-	var color := Color("b29469") if kind == Kind.RAW else Color("588c82")
-	WorldBuilder.box(self, Vector3.ZERO, shape.size, color, false)
-	WorldBuilder.box(self, Vector3(0, 0.184, 0), Vector3(0.09, 0.008, 0.42), Color("d5c4a0"), false)
-	WorldBuilder.text(self, "СЫРЬЁ A" if kind == Kind.RAW else "ПРОДУКТ A", Vector3(0, 0, 0.216), 0.065, Color("203735"))
+	var asset := (load("res://assets/player/Cartons.glb") as PackedScene).instantiate()
+	var model := asset.find_child("RawBox" if kind == Kind.RAW else "ProductBox", true, false) as Node3D
+	ViewArt.clear_owner(model)
+	model.reparent(self, false)
+	asset.free()
+	_apply_paper(model)
+	WorldBuilder.text(self, "СЫРЬЁ A" if kind == Kind.RAW else "ПРОДУКТ A", Vector3(0, -0.047, 0.155), 0.025, Color("363b31"))
 	add_to_group("carry_items")
+
+func _apply_paper(node: Node) -> void:
+	if node is MeshInstance3D and node.name.begins_with("Carton"):
+		var material := (node.get_active_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+		material.albedo_texture = load("res://assets/player/textures/" + ("cardboard" if kind == Kind.RAW else "coated") + ".png")
+		material.albedo_color = Color.WHITE if kind == Kind.RAW else Color("719e91")
+		material.roughness = 0.92
+		node.material_override = material
+	for child: Node in node.get_children():
+		_apply_paper(child)
 
 func get_prompt(actor: PlayerController) -> String:
 	if is_instance_valid(actor.held_item):

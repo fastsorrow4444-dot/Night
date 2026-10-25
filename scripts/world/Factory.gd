@@ -37,6 +37,9 @@ func _ready() -> void:
 	events.world = self
 	add_child(events)
 	events.reading_requested.connect(func(title: String, text: String) -> void: reading_requested.emit(title, text))
+	var dressing := FactoryDressing.new()
+	dressing.world = self
+	add_child(dressing)
 	menu_camera = Camera3D.new()
 	menu_camera.position = Vector3(4.0, 2.75, 10.6)
 	menu_camera.fov = 66.0
@@ -66,11 +69,11 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color("111f20")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("8ea59c")
-	env.ambient_light_energy = 0.52
+	env.ambient_light_color = Color("a0aab5")
+	env.ambient_light_energy = 0.42
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
-	env.fog_light_color = Color("314842")
+	env.fog_light_color = Color("303a40")
 	env.fog_light_energy = 0.5
 	env.fog_density = 0.012
 	world_env.environment = env

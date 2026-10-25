@@ -73,7 +73,7 @@ func _run() -> void:
 			textured = true
 	check(textured, "Workwear uses real imported fabric textures")
 	check(player.camera.cull_mask & 2 == 0 and player.camera.cull_mask & 4 != 0, "First-person camera hides the head and shows its own arms")
-	check(meshes(player.body_visual.parts.ThighWorkL)[0].layers == 8, "Looking down can show the actual lower body")
+	check(meshes(player.body_visual.parts.PelvisWork)[0].layers == 2 and player.camera.cull_mask & 8 == 0, "Full body remains in mirrors and cannot cover the gameplay camera with a waist cap")
 	check(world.mirrors.size() == 2, "Locker room contains two actual mirrors")
 	# Door/wardrobe dispatch is the same E interaction as the rest of the game.
 	player.global_position = Vector3(-4.2, 0.02, 8.9)
@@ -85,7 +85,7 @@ func _run() -> void:
 	main.page.set_outfit("casual")
 	check(game.appearance.top == "casual" and game.appearance.bottom == "casual" and not game.appearance.cap, "Personal outfit applies all selected clothing parts")
 	check(player.body_visual.parts.TorsoCasual.visible and not player.body_visual.parts.TorsoWork.visible, "Full body actually changes to the personal hoodie")
-	check(player.view_arms.parts.ForearmCasualR.visible and not player.view_arms.parts.ForearmWorkR.visible, "First-person sleeves change with the outfit")
+	check(player.view_arms.appearance.top == "casual" and (player.view_arms.sleeves[0].material_override as StandardMaterial3D).albedo_texture.resource_path.ends_with("hoodie.png"), "Dedicated first-person sleeves use the selected clothing texture")
 	check(main.page.preview.parts.TorsoCasual.visible, "Live wardrobe preview matches the worn clothes")
 	check(FileAccess.file_exists(storage.settings_path), "Clothing preference is saved immediately")
 	main.page.draft.bottom = "work"
@@ -120,7 +120,7 @@ func _run() -> void:
 	# The light must wait for the button; draw/holster is not an instant visibility toggle.
 	var lamp := player.flashlight_controller
 	check(lamp.state == FlashlightController.State.HOLSTERED and not player.torch.visible, "Flashlight starts switched off on the belt")
-	check(lamp.world_model.render_layer == 8 and not lamp.view_model.visible, "Holstered model belongs to the belt, with no floating hand torch")
+	check(lamp.world_model.render_layer == 2 and not lamp.view_model.visible, "Holstered model belongs to the reflected belt, with no floating hand torch")
 	lamp.set_process(false)
 	await key(KEY_F)
 	check(lamp.state == FlashlightController.State.DRAWING and not lamp.is_lit, "F starts drawing the torch without switching the light on")
@@ -129,16 +129,47 @@ func _run() -> void:
 	lamp.advance(0.15)
 	await frames()
 	check(lamp.is_lit and player.torch.visible and lamp.press_amount > 0.8, "Light turns on during the visible button-press animation")
-	check(absf(player.body_visual.thumb.rotation.z) > 0.4, "The reflected hand's thumb physically presses the switch")
+	check(player.body_visual.thumb.position.y < -0.007 and player.view_arms.thumb.position.y < -0.007, "The gameplay and reflected thumbs physically depress the switch")
 	lamp.advance(0.14)
 	await frames()
 	check(lamp.state == FlashlightController.State.ON and lamp.raise_amount == 1.0, "Flashlight reaches the stable held-on pose")
 	check(lamp.world_model.render_layer == 2 and lamp.view_model.render_layer == 4 and lamp.view_model.visible, "World and first-person torch models use separate camera layers")
-	check(player.view_arms.hands[1].global_basis.y.dot(Vector3.UP) > 0.9, "Holding pose closes the hand down around the torch rather than leaving fingers raised")
+	check(player.view_arms.right_hand.visible and lamp.world_model.global_position.distance_to(lamp.view_model.global_position) < 0.001, "Sculpted right grip and reflected torch share the actual held position")
 	world.take_raw(player)
 	await frames()
 	check(is_instance_valid(player.held_item) and player.hand.position.x < 0, "A box can be carried in the left hand while the right hand holds the torch")
-	check(player.view_arms.elbows[0].rotation.x > 0.8, "Visible left arm adopts a carrying pose")
+	check(player.view_arms.carrying and player.view_arms.left_hand.visible, "Dedicated left hand supports the carried box")
+	for pitch: float in [0.0, -0.7, -1.15, -1.45]:
+		player.head.rotation.x = pitch
+		await frames()
+		var box := AABB(-Vector3(0.16,0.13,0.15),Vector3(0.32,0.26,0.30)).grow(0.025)
+		var clear := true
+		for step in 21:
+			var local := Vector3(-0.43,-0.66,-0.12).lerp(player.view_arms.left_wrist.position,float(step)/20)
+			var point := player.held_item.to_local(player.camera.to_global(local))
+			if box.has_point(point):
+				clear = false
+		check(clear,"Forearm stays outside carried carton at view pitch %.2f" % pitch)
+	Input.action_press("crouch")
+	await frames(20)
+	lamp.advance(0.0)
+	check(player.torch.global_position.y > player.global_position.y + 0.35,"Looking down while crouched keeps the flashlight source clear of the floor")
+	Input.action_release("crouch")
+	await frames(20)
+	player.head.rotation.x = 0
+	var rounded := BeveledBox.create(Vector3(1,0.6,0.5)) as ArrayMesh
+	var arrays := rounded.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var faces_visible := true
+	for triangle in range(0,indices.size(),3):
+		var a := indices[triangle]
+		var b := indices[triangle+1]
+		var c := indices[triangle+2]
+		if (vertices[b]-vertices[a]).cross(vertices[c]-vertices[a]).dot(normals[a]+normals[b]+normals[c]) >= 0:
+			faces_visible = false
+	check(faces_visible,"Bevelled industrial props have outward visible faces with correct Godot winding")
 	player.consume_item(CarryItem.Kind.RAW)
 	await key(KEY_F)
 	check(lamp.state == FlashlightController.State.PRESS_OFF and lamp.is_lit, "Switching off starts with the hand pressing the still-lit torch")

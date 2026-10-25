@@ -11,7 +11,7 @@ var world_parent: Node3D
 var footstep_distance := 0.0
 var bob_phase := 0.0
 var body_visual: CharacterVisual
-var view_arms: CharacterVisual
+var view_arms: FirstPersonRig
 var flashlight_controller: FlashlightController
 
 @onready var head: Node3D = $Head
@@ -24,21 +24,20 @@ var flashlight_controller: FlashlightController
 func _ready() -> void:
 	body_shape.shape = body_shape.shape.duplicate()
 	world_parent = get_parent()
-	# World=1, full avatar=2, first-person arms=4, own lower body=8, mirrors=16.
-	camera.cull_mask = 1 | 4 | 8 | 16
+	# Full avatar belongs to mirror cameras; the gameplay camera uses a fitted hand rig.
+	camera.cull_mask = 1 | 4 | 16
 	body_visual = CharacterVisual.new()
 	body_visual.name = "BodyVisual"
 	body_visual.actor = self
 	add_child(body_visual)
-	view_arms = CharacterVisual.new()
+	view_arms = FirstPersonRig.new()
 	view_arms.name = "FirstPersonArms"
 	view_arms.actor = self
-	view_arms.first_person = true
 	camera.add_child(view_arms)
-	view_arms.position.y = -1.64
 	flashlight_controller = FlashlightController.new()
 	flashlight_controller.name = "FlashlightController"
 	add_child(flashlight_controller)
+	held_changed.connect(_refresh_hand_pose)
 
 func set_active(value: bool) -> void:
 	active = value
@@ -93,6 +92,11 @@ func _physics_process(delta: float) -> void:
 func apply_appearance(data: Dictionary) -> void:
 	body_visual.apply_appearance(data)
 	view_arms.apply_appearance(data)
+	_refresh_hand_pose()
+
+func _refresh_hand_pose() -> void:
+	if is_instance_valid(flashlight_controller):
+		flashlight_controller.advance(0.0)
 
 func _can_stand() -> bool:
 	var query := PhysicsShapeQueryParameters3D.new()
@@ -118,7 +122,7 @@ func pick_up(item: CarryItem) -> bool:
 	item.angular_velocity = Vector3.ZERO
 	item.reparent(hand)
 	item.position = Vector3.ZERO
-	item.rotation = Vector3(0.05, -0.18, -0.06)
+	item.rotation = Vector3.ZERO
 	held_changed.emit()
 	Audio.effect("click", -16.0)
 	return true

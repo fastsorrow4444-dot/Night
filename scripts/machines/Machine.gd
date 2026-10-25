@@ -21,6 +21,7 @@ var status_label: Label3D
 var status_light: OmniLight3D
 var rotor: MeshInstance3D
 var sound: AudioStreamPlayer3D
+var steam: SteamVent
 
 func _ready() -> void:
 	_build_model()
@@ -68,12 +69,16 @@ func _build_model() -> void:
 	sound.unit_size = 3.0
 	sound.max_distance = 18.0
 	add_child(sound)
+	steam = SteamVent.new()
+	steam.position = Vector3(0.4,3.28,-0.5)
+	add_child(steam)
 
 func _exit_tree() -> void:
 	if is_instance_valid(sound):
 		sound.stop()
 
 func _process(delta: float) -> void:
+	steam.emitting = state == State.RUNNING
 	if state == State.RUNNING:
 		rotor.rotate_y(delta * 5.0 * speed)
 		advance(delta)

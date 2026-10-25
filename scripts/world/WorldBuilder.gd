@@ -3,6 +3,7 @@ extends RefCounted
 ## Small construction helpers for original, editable placeholder geometry.
 const FONT = preload("res://assets/fonts/DejaVuSans.ttf")
 static var materials: Dictionary = {}
+static var painted_materials: Dictionary = {}
 
 static func material(color: Color, metal := 0.0, emission := 0.0) -> StandardMaterial3D:
 	var key := "%s/%.2f/%.2f" % [color.to_html(), metal, emission]
@@ -10,7 +11,7 @@ static func material(color: Color, metal := 0.0, emission := 0.0) -> StandardMat
 		return materials[key]
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.78
+	mat.roughness = lerpf(0.88, 0.34, metal)
 	mat.metallic = metal
 	if emission > 0.0:
 		mat.emission_enabled = true
@@ -19,15 +20,24 @@ static func material(color: Color, metal := 0.0, emission := 0.0) -> StandardMat
 	materials[key] = mat
 	return mat
 
+static func painted_material(color: Color, metal: float) -> ShaderMaterial:
+	var key := color.to_html() + str(metal)
+	if painted_materials.has(key):
+		return painted_materials[key]
+	var result := ShaderMaterial.new()
+	result.shader = preload("res://shaders/industrial_surface.gdshader")
+	result.set_shader_parameter("paint_color", color)
+	result.set_shader_parameter("metal_amount", metal)
+	painted_materials[key] = result
+	return result
+
 static func box(parent: Node3D, pos: Vector3, size: Vector3, color: Color, solid := true, metal := 0.0) -> Node3D:
 	var root: Node3D = StaticBody3D.new() if solid else Node3D.new()
 	root.position = pos
 	parent.add_child(root)
 	var mesh := MeshInstance3D.new()
-	var cube := BoxMesh.new()
-	cube.size = size
-	mesh.mesh = cube
-	mesh.material_override = material(color, metal)
+	mesh.mesh = BeveledBox.create(size)
+	mesh.material_override = painted_material(color, metal)
 	root.add_child(mesh)
 	if solid:
 		var collision := CollisionShape3D.new()
@@ -43,7 +53,7 @@ static func cylinder(parent: Node3D, pos: Vector3, radius: float, height: float,
 	cylinder_mesh.top_radius = radius
 	cylinder_mesh.bottom_radius = radius
 	cylinder_mesh.height = height
-	cylinder_mesh.radial_segments = 12
+	cylinder_mesh.radial_segments = 24
 	mesh.mesh = cylinder_mesh
 	mesh.material_override = material(color, 0.4)
 	mesh.position = pos
@@ -67,7 +77,7 @@ static func text(parent: Node3D, words: String, pos: Vector3, height: float, col
 	return label
 
 static func lamp(parent: Node3D, pos: Vector3, warm := false, energy := 2.0) -> OmniLight3D:
-	var color := Color("ffdb9a") if warm else Color("bce1d0")
+	var color := Color("ffe1b6") if warm else Color("d4dfe5")
 	box(parent, pos, Vector3(1.5, 0.12, 0.3), Color("263c3a"), false)
 	var tube := box(parent, pos + Vector3(0, -0.075, 0), Vector3(1.28, 0.04, 0.15), color, false)
 	var tube_material := material(color, 0.0, 2.5).duplicate() as StandardMaterial3D
