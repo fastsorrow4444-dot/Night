@@ -45,7 +45,8 @@ func _ready() -> void:
 	pressure_slider.value_changed.connect(func(value: float) -> void: machine.target_pressure = value)
 	speed_slider = _setting(controls, "Скорость", "×", 0.5, 1.8, 0.1, machine.speed)
 	speed_slider.value_changed.connect(func(value: float) -> void: machine.speed = value)
-	controls.add_child(UIFactory.paragraph("Температура: 130–180 °C\nДавление: 3–6 бар · Скорость: 0.8–1.2×\nРекомендуется: 160 °C / 4 бар / 1.0×", 14))
+	var recipe := ShiftDefinition.for_number(Game.shift)
+	controls.add_child(UIFactory.paragraph("Температура: 130–180 °C\nДавление: 3–6 бар · Скорость: 0.8–1.2×\nРецепт смены: %d °C / %.1f бар / 1.0×" % [recipe.temperature, recipe.pressure], 14))
 	failure = UIFactory.paragraph("", 15, UIFactory.AMBER)
 	failure.custom_minimum_size.y = 45
 	root.add_child(failure)

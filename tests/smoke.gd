@@ -106,6 +106,7 @@ func _run() -> void:
 	check((player.body_shape.shape as CapsuleShape3D).height > 1.7, "Player can stand back up")
 	var torch_was_on := player.torch.visible
 	await key(KEY_F)
+	await frames(52)
 	check(player.torch.visible != torch_was_on, "F toggles the flashlight")
 	await key(KEY_TAB)
 	check(main.hud.tasks_panel.visible, "Tab opens the operator instructions")

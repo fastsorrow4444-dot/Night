@@ -1,6 +1,8 @@
 class_name FactoryWorld
 extends Node3D
 signal console_requested(machine: FactoryMachine)
+signal wardrobe_requested(actor: PlayerController)
+signal reading_requested(title: String, text: String)
 var preview_mode := true
 var player: PlayerController
 var machine: FactoryMachine
@@ -11,9 +13,17 @@ var terminal: Interactable
 var supply: Interactable
 var breaker: Interactable
 var lamps: Array[OmniLight3D] = []
+var mirrors: Array[PlanarMirror] = []
+var wardrobe: Interactable
+var phone: Interactable
+var journal: Interactable
+var events: NightEvents
+var profile: Dictionary
+var environment: Environment
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
+	profile = ShiftDefinition.for_number(Game.shift)
 	_build_environment()
 	_build_shell()
 	_build_furnishings()
@@ -22,6 +32,11 @@ func _ready() -> void:
 	player.position = Vector3(-7.5, 0.08, 9.0)
 	player.rotation.y = -PI / 2.0
 	add_child(player)
+	_build_locker_features()
+	events = NightEvents.new()
+	events.world = self
+	add_child(events)
+	events.reading_requested.connect(func(title: String, text: String) -> void: reading_requested.emit(title, text))
 	menu_camera = Camera3D.new()
 	menu_camera.position = Vector3(4.0, 2.75, 10.6)
 	menu_camera.fov = 66.0
@@ -35,12 +50,15 @@ func start_work() -> void:
 	player.camera.current = true
 	player.set_active(true)
 	shift_manager.start()
-	Game.notify("Добро пожаловать. План — 6 коробок. Инструкция: Tab. Оплата — после смены.")
+	events.start()
+	Game.notify("Смена %02d / %s. План — %d коробок. Одежда — шкаф 07, инструкция — Tab." % [Game.shift, profile.title, shift_manager.goal])
 
 func end_work() -> void:
 	player.set_active(false)
 	machine.stop_machine()
 	shift_manager.active = false
+	if is_instance_valid(events):
+		events.stop()
 
 func _build_environment() -> void:
 	var world_env := WorldEnvironment.new()
@@ -56,6 +74,7 @@ func _build_environment() -> void:
 	env.fog_light_energy = 0.5
 	env.fog_density = 0.012
 	world_env.environment = env
+	environment = env
 	add_child(world_env)
 
 func _build_shell() -> void:
@@ -129,12 +148,12 @@ func _build_furnishings() -> void:
 	for i in 7:
 		var x := -12.8 + i * 0.9
 		WorldBuilder.box(self, Vector3(x, 1.1, 6.55), Vector3(0.83, 2.2, 0.75), Color("49635c"))
-		WorldBuilder.text(self, "%02d" % (i + 1), Vector3(x, 1.7, 6.94), 0.11, Color("d5cfaf"))
+		WorldBuilder.text(self, "%02d" % (i + 1 if i < 6 else 8), Vector3(x, 1.7, 6.94), 0.11, Color("d5cfaf"))
 		WorldBuilder.box(self, Vector3(x + 0.22, 1.15, 6.96), Vector3(0.04, 0.18, 0.04), Color("bdbda7"), false)
 	WorldBuilder.box(self, Vector3(-10, 0.55, 9), Vector3(3.6, 0.15, 0.6), Color("997c4c"))
 	for x: float in [-11.4, -8.6]:
 		WorldBuilder.box(self, Vector3(x, 0.25, 9), Vector3(0.12, 0.5, 0.5), Color("334d40"))
-	WorldBuilder.text(self, "ТВОЯ СМЕНА\nИХ БУДУЩЕЕ", Vector3(-13.85, 2.6, 9.7), 0.3, Color("ccba7c"), Vector3(0, PI / 2, 0))
+	WorldBuilder.text(self, "ТВОЯ СМЕНА / ИХ БУДУЩЕЕ", Vector3(-11.0, 3.4, 11.84), 0.19, Color("ccba7c"), Vector3(0, PI, 0))
 	# Warehouse: shelves with individually modelled boxes.
 	for z: float in [-0.8, 4.8]:
 		for x: float in [-12.8, -6.2]:
@@ -168,10 +187,15 @@ func _build_furnishings() -> void:
 func _build_workflow() -> void:
 	shift_manager = ShiftManager.new()
 	shift_manager.name = "ShiftManager"
+	shift_manager.goal = int(profile.goal)
+	shift_manager.duration = float(profile.duration)
 	add_child(shift_manager)
 	machine = preload("res://scenes/machines/Machine.tscn").instantiate()
 	machine.position = Vector3(8, 0, 1)
 	machine.shift_manager = shift_manager
+	machine.batch_seconds = float(profile.batch_seconds)
+	machine.target_temperature = float(profile.temperature)
+	machine.target_pressure = float(profile.pressure)
 	add_child(machine)
 	machine.panel_requested.connect(func(m: FactoryMachine) -> void: console_requested.emit(m))
 	supply = WorldBuilder.action_point(self, Vector3(-5.4, 1.0, 0.6), Vector3(1.2, 1.0, 1.1), "Выдача сырья A", "Взять коробку сырья A", Color("a88e5c"))
@@ -187,13 +211,44 @@ func _build_workflow() -> void:
 	WorldBuilder.box(terminal, Vector3(0, 0.15, 0.19), Vector3(1.0, 0.68, 0.02), Color("1a3025"), false)
 	WorldBuilder.text(terminal, "ТАБЕЛЬ УЧЁТА\nЗАКРЫТЬ СМЕНУ\n[ E ]", Vector3(0, 0.15, 0.21), 0.13, Color("b6c997"))
 	terminal.interacted.connect(func(_actor: PlayerController) -> void: shift_manager.finish())
-	WorldBuilder.text(self, "ОПЕРАТОРУ\nПЛАН: 6 КОРОБОК ПРОДУКТА A\nМ–13: 160 °C / 4 БАР / 1.0×\nПОРЯДОК РАБОТЫ — TAB\n\nПЕРЕРАБОТКИ НЕ СУЩЕСТВУЕТ.\nСУЩЕСТВУЕТ ЛОЯЛЬНОСТЬ.", Vector3(-8.0, 2.3, 11.83), 0.16, Color("dbd1ac"), Vector3(0, PI, 0))
+	WorldBuilder.text(self, "ОПЕРАТОРУ\nПЛАН: %d КОРОБОК ПРОДУКТА A\nМ–13: %d °C / %.1f БАР / 1.0×\nПОРЯДОК РАБОТЫ — TAB\n\nПЕРЕРАБОТКИ НЕ СУЩЕСТВУЕТ.\nСУЩЕСТВУЕТ ЛОЯЛЬНОСТЬ." % [profile.goal, profile.temperature, profile.pressure], Vector3(-8.0, 2.3, 11.83), 0.16, Color("dbd1ac"), Vector3(0, PI, 0))
 	breaker = WorldBuilder.action_point(self, Vector3(-5.3, 1.5, -11.7), Vector3(0.9, 1.3, 0.35), "Главный рубильник", "Переключить питание М-13", Color("a08b4f"))
 	WorldBuilder.text(breaker, "ПИТАНИЕ\nМ–13\n[ E ]", Vector3(0, 0.1, 0.19), 0.14, Color("203a2a"))
 	breaker.interacted.connect(func(_actor: PlayerController) -> void:
 		machine.set_power(not machine.power)
 		Game.notify("Питание М-13 " + ("включено. При аварии нажмите RESET на пульте." if machine.power else "отключено."))
 		Audio.effect("click", -5.0))
+	phone = WorldBuilder.action_point(self, Vector3(11.0, 1.42, -10.0), Vector3(0.65, 0.22, 0.43), "Служебный телефон", "Поднять трубку", Color("313b36"))
+	WorldBuilder.box(phone, Vector3(0, 0.17, 0), Vector3(0.67, 0.10, 0.13), Color("202b27"), false)
+	for x: float in [-0.26, 0.26]:
+		WorldBuilder.box(phone, Vector3(x, 0.13, 0), Vector3(0.11, 0.16, 0.17), Color("202b27"), false)
+	for x in 3:
+		for y in 3:
+			WorldBuilder.box(phone, Vector3(-0.08 + x * 0.08, 0.12, 0.07 + y * 0.04), Vector3(0.05, 0.012, 0.025), Color("a19a7e"), false)
+	journal = WorldBuilder.action_point(self, Vector3(5.95, 1.335, -10.2), Vector3(0.59, 0.035, 0.43), "Архивный журнал смен", "Прочитать лист №13", Color("b8ad85"))
+	WorldBuilder.text(journal, "ЖУРНАЛ / 13", Vector3(0, 0.025, 0), 0.055, Color("383d2b"), Vector3(-PI / 2, 0, 0))
+	journal.visible = false
+	journal.enabled = false
+
+func _build_locker_features() -> void:
+	wardrobe = WorldBuilder.action_point(self, Vector3(-4.2, 1.1, 6.65), Vector3(1.15, 2.2, 0.65), "Личный шкаф 07", "Переодеться · рабочая / личная одежда", Color("40585a"))
+	WorldBuilder.box(wardrobe, Vector3(0, 0, 0.34), Vector3(0.018, 2.1, 0.025), Color("1b3030"), false)
+	WorldBuilder.box(wardrobe, Vector3(0.39, 0.05, 0.36), Vector3(0.04, 0.18, 0.05), Color("aaa68b"), false)
+	WorldBuilder.text(wardrobe, "07 / ВАШ ШКАФ", Vector3(0, 0.70, 0.34), 0.11, Color("dfd5b7"))
+	wardrobe.interacted.connect(func(actor: PlayerController) -> void: wardrobe_requested.emit(actor))
+	for description: Dictionary in [
+		{"position": Vector3(-13.78, 1.60, 10.25), "yaw": PI / 2, "size": Vector2(2.4, 2.3)},
+		{"position": Vector3(-2.15, 1.65, 10.9), "yaw": -PI / 2, "size": Vector2(0.85, 1.3)},
+	]:
+		var mirror := PlanarMirror.new()
+		mirror.position = description.position
+		mirror.rotation.y = float(description.yaw)
+		mirror.dimensions = description.size
+		mirror.observer = player.camera
+		add_child(mirror)
+		mirrors.append(mirror)
+	lamps.append(WorldBuilder.lamp(self, Vector3(-12.6, 3.6, 10.2), false, 2.0))
+	WorldBuilder.text(self, "ПРОВЕРЬТЕ ВНЕШНИЙ ВИД", Vector3(-13.64, 2.97, 10.25), 0.12, Color("c9c4aa"), Vector3(0, PI / 2, 0))
 
 func take_raw(actor: PlayerController) -> void:
 	if is_instance_valid(actor.held_item):

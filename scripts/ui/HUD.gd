@@ -120,6 +120,6 @@ func _build_tasks() -> void:
 	column.add_child(UIFactory.label("ПАМЯТКА ОПЕРАТОРА", 13, UIFactory.AMBER, UIFactory.MONO))
 	column.add_child(UIFactory.label("Не усложняйте работу", 24, UIFactory.PAPER, UIFactory.BOLD))
 	UIFactory.rule(column)
-	column.add_child(UIFactory.paragraph("01   СКЛАД\nВозьмите сырьё A с выдачи.\n\n02   ЦЕХ / М–13\nЗагрузите жёлтый приёмник. На пульте:\n160 °C · 4 бар · 1.0× → START.\n\n03   ВЫХОДНОЙ ЛОТОК\nЧерез 12 секунд заберите продукт.\n\n04   УПАКОВКА\nОтнесите продукт на стол в цехе.\nПовторите, пока не будет 6 коробок.\n\n05   РАЗДЕВАЛКА\nЗакройте смену на табельном терминале.", 16, UIFactory.PAPER))
+	column.add_child(UIFactory.paragraph("01   СКЛАД\nВозьмите сырьё A с выдачи.\n\n02   ЦЕХ / М–13\nЗагрузите жёлтый приёмник. На пульте:\n%d °C · %.1f бар · 1.0× → START.\n\n03   ВЫХОДНОЙ ЛОТОК\nЧерез %d секунд заберите продукт.\n\n04   УПАКОВКА\nОтнесите продукт на стол в цехе.\nПовторите, пока не будет %d коробок.\n\n05   РАЗДЕВАЛКА\nЗакройте смену на табельном терминале." % [world.profile.temperature, world.profile.pressure, world.profile.batch_seconds, world.shift_manager.goal], 16, UIFactory.PAPER))
 	column.add_child(UIFactory.paragraph("Авария: исправьте параметры → RESET.\nНет питания: рубильник в технической.\n\nWASD — идти · Shift — бег · Ctrl — присесть\nМышь — обзор · E — действие · G — положить", 13))
 	tasks_panel.hide()

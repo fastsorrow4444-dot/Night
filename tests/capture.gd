@@ -38,9 +38,9 @@ func _run() -> void:
 	main.world.player.global_position = Vector3(3.4, 0.02, 7.1)
 	main.world.player.camera.look_at(Vector3(8, 1.4, 1))
 	await shot("gameplay")
-	main.world.player.torch.visible = false
-	await shot("gameplay_no_torch")
-	main.world.player.torch.visible = true
+	main.world.player.flashlight_controller.toggle()
+	await get_tree().create_timer(0.83).timeout
+	await shot("gameplay_flashlight")
 	main.open_console(main.world.machine)
 	await shot("console")
 	main._close_console()

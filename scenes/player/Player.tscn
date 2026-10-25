@@ -23,7 +23,7 @@ fov = 78.0
 near = 0.05
 
 [node name="Hand" type="Marker3D" parent="Head/Camera3D"]
-position = Vector3(0.38, -0.32, -0.72)
+position = Vector3(-0.27, -0.34, -0.72)
 
 [node name="Flashlight" type="SpotLight3D" parent="Head/Camera3D"]
 position = Vector3(0.14, -0.12, -0.08)

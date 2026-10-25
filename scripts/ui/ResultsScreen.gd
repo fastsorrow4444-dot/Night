@@ -26,7 +26,7 @@ func _ready() -> void:
 	column.add_child(UIFactory.paragraph(save_message, 14, Color("53694c")))
 	column.add_child(UIFactory.button("ПРОДОЛЖИТЬ РАБОТУ   →", func() -> void: continue_requested.emit(), true))
 	column.add_child(UIFactory.button("В ГЛАВНОЕ МЕНЮ", func() -> void: menu_requested.emit()))
-	column.add_child(UIFactory.paragraph("В MVP доступен один производственный сценарий. Следующие смены повторяют его; сюжетная кампания появится позже.", 12, Color("686c57")))
+	column.add_child(UIFactory.paragraph("Подготовлены две смены. Во второй: новый план, телефон, сбой освещения и архивный журнал. После неё производство можно повторять.", 12, Color("686c57")))
 
 func _row(parent: VBoxContainer, title: String, value: String, font_size := 17) -> void:
 	var row := HBoxContainer.new()

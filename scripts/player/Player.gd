@@ -10,6 +10,9 @@ var held_item: CarryItem
 var world_parent: Node3D
 var footstep_distance := 0.0
 var bob_phase := 0.0
+var body_visual: CharacterVisual
+var view_arms: CharacterVisual
+var flashlight_controller: FlashlightController
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -21,6 +24,21 @@ var bob_phase := 0.0
 func _ready() -> void:
 	body_shape.shape = body_shape.shape.duplicate()
 	world_parent = get_parent()
+	# World=1, full avatar=2, first-person arms=4, own lower body=8, mirrors=16.
+	camera.cull_mask = 1 | 4 | 8 | 16
+	body_visual = CharacterVisual.new()
+	body_visual.name = "BodyVisual"
+	body_visual.actor = self
+	add_child(body_visual)
+	view_arms = CharacterVisual.new()
+	view_arms.name = "FirstPersonArms"
+	view_arms.actor = self
+	view_arms.first_person = true
+	camera.add_child(view_arms)
+	view_arms.position.y = -1.64
+	flashlight_controller = FlashlightController.new()
+	flashlight_controller.name = "FlashlightController"
+	add_child(flashlight_controller)
 
 func set_active(value: bool) -> void:
 	active = value
@@ -36,8 +54,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotate_y(-event.relative.x * float(Storage.settings.sensitivity))
 		head.rotation.x = clampf(head.rotation.x - event.relative.y * float(Storage.settings.sensitivity), -1.45, 1.45)
 	if event.is_action_pressed("flashlight"):
-		torch.visible = not torch.visible
-		Audio.effect("click", -12.0)
+		flashlight_controller.toggle()
 	if event.is_action_pressed("drop_item"):
 		drop_item()
 
@@ -72,6 +89,10 @@ func _physics_process(delta: float) -> void:
 			Audio.effect("step", -23.0 if crouching else -15.0)
 	camera.position.y = sin(bob_phase) * 0.018 * minf(moving, 1.0)
 	camera.fov = lerpf(camera.fov, 82.0 if speed > walk_speed else 78.0, delta * 6.0)
+
+func apply_appearance(data: Dictionary) -> void:
+	body_visual.apply_appearance(data)
+	view_arms.apply_appearance(data)
 
 func _can_stand() -> bool:
 	var query := PhysicsShapeQueryParameters3D.new()

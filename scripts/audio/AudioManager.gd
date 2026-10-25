@@ -5,6 +5,7 @@ const SOUNDS := {
 	"door": "res://assets/audio/door.wav",
 	"success": "res://assets/audio/success.wav",
 	"alarm": "res://assets/audio/alarm.wav",
+	"knock": "res://assets/audio/knock.wav",
 }
 var ambience: AudioStreamPlayer
 var playback_enabled := true

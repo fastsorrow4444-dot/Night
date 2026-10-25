@@ -4,6 +4,7 @@ const SETTINGS = preload("res://scenes/ui/SettingsMenu.tscn")
 const HUD_SCENE = preload("res://scenes/ui/HUD.tscn")
 const MACHINE_PANEL = preload("res://scenes/ui/MachinePanel.tscn")
 const RESULTS = preload("res://scenes/ui/ResultsScreen.tscn")
+const WARDROBE = preload("res://scenes/ui/WardrobeMenu.tscn")
 var world: FactoryWorld
 var canvas: CanvasLayer
 var page: Control
@@ -40,6 +41,8 @@ func _new_world() -> void:
 	world.player.torch.add_to_group("quality_lights")
 	world.player.torch.shadow_enabled = int(Storage.settings.quality) > 0
 	world.console_requested.connect(open_console)
+	world.wardrobe_requested.connect(open_wardrobe)
+	world.reading_requested.connect(open_reading)
 
 func _clear_page() -> void:
 	if is_instance_valid(page):
@@ -123,6 +126,44 @@ func _close_console() -> void:
 	mode = "play"
 	world.player.set_active(true)
 
+func open_wardrobe(actor: PlayerController) -> void:
+	if mode != "play":
+		return
+	mode = "wardrobe"
+	world.player.set_active(false)
+	get_tree().paused = true
+	page = WARDROBE.instantiate()
+	page.actor = actor
+	page.closed.connect(_close_paused_page)
+	canvas.add_child(page)
+
+func open_reading(title: String, text: String) -> void:
+	if mode != "play":
+		return
+	mode = "reading"
+	world.player.set_active(false)
+	get_tree().paused = true
+	page = Control.new()
+	page.theme = UIFactory.theme()
+	canvas.add_child(page)
+	UIFactory.full(page)
+	UIFactory.dim(page, 0.9)
+	var panel := UIFactory.centered(page, 800, 670)
+	var column := UIFactory.column(panel, 20)
+	column.add_child(UIFactory.label("УЧАСТОК 04 / СЛУЖЕБНЫЕ МАТЕРИАЛЫ", 12, UIFactory.AMBER, UIFactory.MONO))
+	column.add_child(UIFactory.paragraph(title, 28, UIFactory.PAPER))
+	UIFactory.rule(column)
+	var body := UIFactory.paragraph(text, 18, UIFactory.PAPER)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(body)
+	column.add_child(UIFactory.button("ВЕРНУТЬСЯ К РАБОТЕ   /   ESC", _close_paused_page, true))
+
+func _close_paused_page() -> void:
+	_clear_page()
+	get_tree().paused = false
+	mode = "play"
+	world.player.set_active(true)
+
 func pause_game() -> void:
 	mode = "pause"
 	world.player.set_active(false)
@@ -196,6 +237,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			"pause": resume_game()
 			"machine": _close_console()
 			"settings": _close_settings()
+			"wardrobe", "reading": _close_paused_page()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("tasks") and mode == "play":
 		hud.toggle_tasks()

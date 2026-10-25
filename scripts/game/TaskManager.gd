@@ -10,6 +10,8 @@ static func current(shift: ShiftManager, machine: FactoryMachine, player: Player
 		return "Отнесите продукт на стол упаковки в цехе"
 	if machine.state == FactoryMachine.State.FAULT:
 		return "Устраните неисправность и нажмите RESET на пульте"
+	if player.world_parent is FactoryWorld and player.world_parent.events.ringing:
+		return "Звонит телефон · комната управления · можно продолжать производство"
 	if machine.state == FactoryMachine.State.READY:
 		return "Заберите продукт из зелёного лотка машины"
 	if machine.state == FactoryMachine.State.RUNNING:

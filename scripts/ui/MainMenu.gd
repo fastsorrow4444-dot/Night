@@ -41,7 +41,7 @@ func _ready() -> void:
 	column.add_child(resume)
 	column.add_child(UIFactory.button("НАСТРОЙКИ", func() -> void: settings_requested.emit()))
 	column.add_child(UIFactory.button("ВЫХОД", func() -> void: exit_requested.emit()))
-	var footer := UIFactory.label("ПЕРВЫЙ ПРОТОТИП  /  0.1\nНаушники рекомендованы. Сверхурочные — нет.", 13, UIFactory.MUTED)
+	var footer := UIFactory.label("ДВЕ СМЕНЫ  /  0.2\nНаушники рекомендованы. Сверхурочные — нет.", 13, UIFactory.MUTED)
 	add_child(footer)
 	footer.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	footer.position += Vector2(68, -76)

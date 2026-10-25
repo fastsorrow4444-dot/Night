@@ -9,6 +9,8 @@ var last_error := ""
 var settings: Dictionary = {
 	"volume": 0.7, "sensitivity": 0.0022, "fullscreen": false,
 	"resolution": 0, "quality": 1,
+	"appearance": {"top": "work", "bottom": "work", "shoes": "work", "cap": true},
+	"appearance_saved": false,
 }
 
 func _ready() -> void:
@@ -81,6 +83,10 @@ func _read_valid(path: String) -> Dictionary:
 	if not (data.shift is float or data.shift is int) or not (data.money is float or data.money is int):
 		return {}
 	if not data.upgrades is Array or not data.choices is Dictionary or not data.documents is Array:
+		return {}
+	if data.has("appearance") and not data.appearance is Dictionary:
+		return {}
+	if data.has("last_result") and not data.last_result is Dictionary:
 		return {}
 	data.shift = clampi(int(data.shift), 1, 999)
 	data.money = clampi(int(data.money), 0, 999999)

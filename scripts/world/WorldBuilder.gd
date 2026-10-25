@@ -70,7 +70,8 @@ static func lamp(parent: Node3D, pos: Vector3, warm := false, energy := 2.0) -> 
 	var color := Color("ffdb9a") if warm else Color("bce1d0")
 	box(parent, pos, Vector3(1.5, 0.12, 0.3), Color("263c3a"), false)
 	var tube := box(parent, pos + Vector3(0, -0.075, 0), Vector3(1.28, 0.04, 0.15), color, false)
-	(tube.get_child(0) as MeshInstance3D).material_override = material(color, 0.0, 2.5)
+	var tube_material := material(color, 0.0, 2.5).duplicate() as StandardMaterial3D
+	(tube.get_child(0) as MeshInstance3D).material_override = tube_material
 	var light := OmniLight3D.new()
 	light.position = pos + Vector3(0, -0.35, 0)
 	light.light_color = color
@@ -78,6 +79,7 @@ static func lamp(parent: Node3D, pos: Vector3, warm := false, energy := 2.0) -> 
 	light.omni_range = 10.0
 	light.omni_attenuation = 1.25
 	parent.add_child(light)
+	light.set_meta("fixture_material", tube_material)
 	return light
 
 static func action_point(parent: Node3D, pos: Vector3, size: Vector3, title: String, action: String, color: Color) -> Interactable:

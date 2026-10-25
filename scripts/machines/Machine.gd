@@ -115,7 +115,8 @@ func load_raw(actor: PlayerController) -> void:
 	loaded = true
 	progress = 0.0
 	state = State.IDLE
-	Game.notify("Сырьё загружено. Пульт справа: 160 °C / 4 бар / 1.0× / START.")
+	var recipe := ShiftDefinition.for_number(Game.shift)
+	Game.notify("Сырьё загружено. Пульт справа: %d °C / %.1f бар / 1.0× / START." % [recipe.temperature, recipe.pressure])
 	_refresh_display()
 
 func start_machine() -> bool:

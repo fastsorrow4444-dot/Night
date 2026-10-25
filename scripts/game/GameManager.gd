@@ -11,6 +11,25 @@ var choices: Dictionary = {}
 var documents: Array = []
 var last_result: Dictionary = {}
 var session_active := false
+var appearance: Dictionary = {"top": "work", "bottom": "work", "shoes": "work", "cap": true}
+
+func _ready() -> void:
+	appearance = sanitize_appearance(Storage.settings.get("appearance", {}))
+
+func sanitize_appearance(value: Variant) -> Dictionary:
+	var result := {"top": "work", "bottom": "work", "shoes": "work", "cap": true}
+	if value is Dictionary:
+		for key: String in ["top", "bottom", "shoes"]:
+			if value.get(key, "work") in ["work", "casual"]:
+				result[key] = value.get(key, "work")
+		result.cap = bool(value.get("cap", true))
+	return result
+
+func change_appearance(data: Dictionary) -> Error:
+	appearance = sanitize_appearance(data)
+	Storage.settings.appearance = appearance.duplicate(true)
+	Storage.settings.appearance_saved = true
+	return Storage.save_settings()
 
 func new_game() -> void:
 	shift = 1
@@ -31,6 +50,9 @@ func continue_game() -> bool:
 	choices = data.choices.duplicate(true)
 	documents = data.documents.duplicate()
 	last_result = data.get("last_result", {}).duplicate(true)
+	appearance = sanitize_appearance(data.get("appearance", Storage.settings.get("appearance", {})))
+	if bool(Storage.settings.get("appearance_saved", false)):
+		appearance = sanitize_appearance(Storage.settings.appearance)
 	begin_session()
 	return true
 
@@ -60,7 +82,7 @@ func complete_shift(produced: int, goal: int, mistakes: int, timed_out: bool) ->
 func serialize() -> Dictionary:
 	return {"shift": shift, "money": money, "upgrades": upgrades.duplicate(),
 		"choices": choices.duplicate(true), "documents": documents.duplicate(),
-		"last_result": last_result.duplicate(true)}
+		"last_result": last_result.duplicate(true), "appearance": appearance.duplicate(true)}
 
 func notify(message: String) -> void:
 	notification.emit(message)

@@ -3,10 +3,11 @@ config_version=5
 
 [application]
 config/name="Смена №13"
+config/version="0.2.0"
 run/main_scene="res://scenes/main/Main.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://assets/icon.svg"
-config/description="Ночная смена на производстве. Первый игровой прототип."
+config/description="Две ночные смены, персонаж, одежда, зеркала и фонарик."
 
 [autoload]
 Storage="*res://scripts/save/SaveManager.gd"
