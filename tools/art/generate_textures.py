@@ -9,10 +9,10 @@ rng = np.random.default_rng(13)
 size = 512
 y, x = np.mgrid[:size, :size]
 materials = {
-    'work_canvas': ((43, 68, 73), 'canvas'),
-    'work_trousers': ((51, 64, 65), 'canvas'),
-    'hoodie': ((107, 47, 49), 'cotton'),
-    'denim': ((49, 73, 100), 'denim'),
+    'work_canvas': ((48, 58, 68), 'canvas'),
+    'work_trousers': ((45, 49, 53), 'canvas'),
+    'hoodie': ((92, 42, 40), 'cotton'),
+    'denim': ((38, 51, 69), 'denim'),
     'leather': ((43, 36, 29), 'leather'),
     'skin': ((187, 139, 108), 'skin'),
 }
@@ -22,10 +22,9 @@ for name, (base, kind) in materials.items():
         fibers = np.sin((x + y * 2) * np.pi / 3) * 4 + np.cos(x * np.pi) * 2
     elif kind == 'canvas':
         fibers = np.sin(x * np.pi / 2) * 2 + np.cos(y * np.pi / 2) * 2
-        fibers += ((x % 64 < 2) | (y % 64 < 2)) * 2
     elif kind == 'cotton':
         fibers = np.sin(x * np.pi / 2) * np.sin(y * np.pi / 3) * 2
-    coarse = (np.sin(x * np.pi * 2 / size) * np.cos(y * np.pi * 4 / size) * 2)
+    coarse = (np.sin(x * np.pi * 2 / size) * np.cos(y * np.pi * 4 / size) * .5)
     noise = rng.normal(0, 1.1 if kind == 'skin' else 2.2, (size, size))
     value = fibers + noise + coarse
     if kind == 'leather':

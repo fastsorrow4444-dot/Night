@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bxh23trrvamov"
-path="res://.godot/imported/ViewHands.glb-1939d6a935fa796083918442a01a84bc.scn"
+uid="uid://ngmqmvhlicru"
+path="res://.godot/imported/AnatomicalHands.glb-f4628bf5eca8137e5fcd98320a74f13b.scn"
 
 [deps]
 
-source_file="res://assets/player/ViewHands.glb"
-dest_files=["res://.godot/imported/ViewHands.glb-1939d6a935fa796083918442a01a84bc.scn"]
+source_file="res://assets/player/AnatomicalHands.glb"
+dest_files=["res://.godot/imported/AnatomicalHands.glb-f4628bf5eca8137e5fcd98320a74f13b.scn"]
 
 [params]
 

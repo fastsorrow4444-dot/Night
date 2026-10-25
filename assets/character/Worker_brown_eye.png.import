@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bfut5eu0jwwgq"
-path="res://.godot/imported/Worker_skin_normal.png-d2d01562d44b681da38d17ce1dffa133.ctex"
+uid="uid://d0s568grd8iqv"
+path="res://.godot/imported/Worker_brown_eye.png-e5d2a9a05ecd9c19b6eb532c1d0be263.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "c87853f8fa0a3f2c271abf2fc19aa312"
+"md5": "1b93ce1fc9dfa16177a6d61005cdb4fd"
 }
 
 [deps]
 
-source_file="res://assets/character/Worker_skin_normal.png"
-dest_files=["res://.godot/imported/Worker_skin_normal.png-d2d01562d44b681da38d17ce1dffa133.ctex"]
+source_file="res://assets/character/Worker_brown_eye.png"
+dest_files=["res://.godot/imported/Worker_brown_eye.png-e5d2a9a05ecd9c19b6eb532c1d0be263.ctex"]
 
 [params]
 

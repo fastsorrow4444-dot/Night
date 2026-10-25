@@ -2,9 +2,9 @@ class_name PlayerController
 extends CharacterBody3D
 signal held_changed
 
-@export var walk_speed := 3.4
-@export var sprint_speed := 5.3
-@export var crouch_speed := 1.8
+@export var walk_speed := 2.25
+@export var sprint_speed := 4.2
+@export var crouch_speed := 1.2
 var active := false
 var held_item: CarryItem
 var world_parent: Node3D
@@ -50,6 +50,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not active:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		view_arms.add_look_input(event.relative)
 		rotate_y(-event.relative.x * float(Storage.settings.sensitivity))
 		head.rotation.x = clampf(head.rotation.x - event.relative.y * float(Storage.settings.sensitivity), -1.45, 1.45)
 	if event.is_action_pressed("flashlight"):
@@ -82,11 +83,12 @@ func _physics_process(delta: float) -> void:
 	var moving := Vector2(velocity.x, velocity.z).length()
 	if is_on_floor() and moving > 0.2:
 		footstep_distance += moving * delta
-		bob_phase += delta * moving * 2.5
-		if footstep_distance > (1.8 if crouching else 1.55):
+		bob_phase += delta * moving * TAU / 1.4
+		if footstep_distance > (0.45 if crouching else 0.70):
 			footstep_distance = 0.0
 			Audio.effect("step", -23.0 if crouching else -15.0)
-	camera.position.y = sin(bob_phase) * 0.018 * minf(moving, 1.0)
+	# Soft head motion; weapon/hand inertia is independent of camera rotation.
+	camera.position.y = lerpf(camera.position.y, (cos(bob_phase * 2.0) - 1.0) * 0.004 * minf(moving, 1.0), 1.0 - exp(-delta * 14.0))
 	camera.fov = lerpf(camera.fov, 82.0 if speed > walk_speed else 78.0, delta * 6.0)
 
 func apply_appearance(data: Dictionary) -> void:

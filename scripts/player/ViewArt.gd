@@ -2,9 +2,9 @@ class_name ViewArt
 extends RefCounted
 ## Shared close-up hand meshes, used both by the camera and the mirror avatar.
 static func hand(right: bool, layers: int) -> Node3D:
-	var source := (load("res://assets/player/ViewHands.glb") as PackedScene).instantiate()
+	var source := (load("res://assets/player/AnatomicalHands.glb") as PackedScene).instantiate()
 	var root := Node3D.new()
-	var names: Array = ["RightHand", "RightThumb"] if right else ["LeftHand"]
+	var names: Array = ["RightHand"] if right else ["LeftHand"]
 	for part_name: String in names:
 		var part := source.find_child(part_name, true, false) as Node3D
 		if part != null:
@@ -13,6 +13,13 @@ static func hand(right: bool, layers: int) -> Node3D:
 	source.free()
 	set_layers(root, layers)
 	return root
+
+static func press_switch(root: Node3D, amount: float) -> void:
+	var mesh := root.find_child("RightHand", true, false) as MeshInstance3D
+	if mesh != null:
+		var index := mesh.find_blend_shape_by_name("SwitchPress")
+		if index >= 0:
+			mesh.set_blend_shape_value(index, amount)
 
 static func clear_owner(node: Node) -> void:
 	node.owner = null
@@ -30,14 +37,15 @@ static func set_layers(node: Node, layers: int) -> void:
 static func sleeve_mesh() -> ArrayMesh:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	const SEGMENTS := 32
-	const ROWS := 10
+	const SEGMENTS := 48
+	const ROWS := 40
 	for row in ROWS + 1:
 		var t := float(row) / ROWS
-		var radius := lerpf(0.028, 0.054, t) + sin(t * 28.0) * 0.0015 * sin(t * PI)
 		for column in SEGMENTS + 1:
 			var angle := float(column) / SEGMENTS * TAU
-			surface.set_normal(Vector3(cos(angle), 0, sin(angle)))
+			var compression := sin(t * 48.0 + sin(angle) * 1.4) * 0.0025 * pow(sin(t * PI), 2)
+			var radius := lerpf(0.028, 0.055, pow(t, 0.85)) + compression
+			surface.set_normal(Vector3(cos(angle), -0.027, sin(angle)).normalized())
 			surface.set_uv(Vector2(float(column) / SEGMENTS * 2.0, t * 3.0))
 			surface.add_vertex(Vector3(cos(angle) * radius, t, sin(angle) * radius * 0.88))
 	for row in ROWS:

@@ -7,9 +7,9 @@ mkdir -p test-results
 touch test-results/.gdignore
 log_file="$(mktemp)"
 trap 'rm -f "$log_file"' EXIT
-for runner in SmokeRunner FeatureRunner; do
+for runner in SmokeRunner FeatureRunner AnimationRunner; do
   test_status=0
-  "$godot_bin" --headless --path . --fixed-fps 60 --scene "res://tests/$runner.tscn" >"$log_file" 2>&1 || test_status=$?
+  "$godot_bin" --headless --path . --fixed-fps 60 --quit-after 6000 --scene "res://tests/$runner.tscn" >"$log_file" 2>&1 || test_status=$?
   cat "$log_file"
   if (( test_status != 0 )); then
     exit "$test_status"

@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bk5fiscvpniqu"
-path="res://.godot/imported/Worker_skin.png-e0ed767e677db8af7e794dea5a2ab90c.ctex"
+uid="uid://dtybgv8bvdw1e"
+path="res://.godot/imported/AnatomicalHands_worker_skin_atlas.png-3f3d5a47c083323ed90316cded558c66.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "43698a1b3a8e3544faf78dd3c26e9ae6"
+"md5": "c7acf691af15b663e705d3514c147907"
 }
 
 [deps]
 
-source_file="res://assets/character/Worker_skin.png"
-dest_files=["res://.godot/imported/Worker_skin.png-e0ed767e677db8af7e794dea5a2ab90c.ctex"]
+source_file="res://assets/player/AnatomicalHands_worker_skin_atlas.png"
+dest_files=["res://.godot/imported/AnatomicalHands_worker_skin_atlas.png-3f3d5a47c083323ed90316cded558c66.ctex"]
 
 [params]
 

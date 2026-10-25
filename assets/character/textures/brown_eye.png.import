@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cppfjl23e6dxl"
-path="res://.godot/imported/Worker_operator_patch.png-2579970f32dc7ae9c1bc7113062bb3f7.ctex"
+uid="uid://k83k4ifpwmvg"
+path="res://.godot/imported/brown_eye.png-94cdf62f100a75341c3dcb6b0a49cf10.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "a1af450be5b1678ebae23e20c44f178d"
 }
 
 [deps]
 
-source_file="res://assets/character/Worker_operator_patch.png"
-dest_files=["res://.godot/imported/Worker_operator_patch.png-2579970f32dc7ae9c1bc7113062bb3f7.ctex"]
+source_file="res://assets/character/textures/brown_eye.png"
+dest_files=["res://.godot/imported/brown_eye.png-94cdf62f100a75341c3dcb6b0a49cf10.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

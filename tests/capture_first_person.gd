@@ -51,10 +51,14 @@ func _run() -> void:
 	world.machine.start_machine()
 	await get_tree().create_timer(1.0).timeout
 	await shot("graphics_machine_running")
-	player.position = Vector3(-11.7,0.02,10.25)
+	player.position = Vector3(-12.6,0.02,10.25)
 	player.rotation.y = PI / 2
 	player.head.rotation.x = 0
+	main.hud.toast_seconds = 0
 	await shot("mirror_new_grip")
+	main.open_wardrobe(player)
+	await shot("wardrobe_new")
+	main._close_paused_page()
 	main.world.end_work()
 	main.queue_free()
 	for voice: Node in root.get_node("Audio").get_children():

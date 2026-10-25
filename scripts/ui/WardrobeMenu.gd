@@ -90,24 +90,25 @@ func _build_preview(container: SubViewportContainer) -> void:
 	var environment := WorldEnvironment.new()
 	var settings := Environment.new()
 	settings.background_mode = Environment.BG_COLOR
-	settings.background_color = Color("203033")
+	settings.background_color = Color("232a32")
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color("bfcac2")
-	settings.ambient_light_energy = 0.7
+	settings.ambient_light_color = Color("c1cfdf")
+	settings.ambient_light_energy = 0.45
 	environment.environment = settings
 	stage.add_child(environment)
 	var key_light := DirectionalLight3D.new()
 	key_light.rotation_degrees = Vector3(-25, 150, 0)
 	key_light.light_color = Color("fce5c5")
-	key_light.light_energy = 1.8
+	key_light.light_energy = 1.1
 	stage.add_child(key_light)
 	var fill := OmniLight3D.new()
 	fill.position = Vector3(-1.2, 1.6, -1.2)
-	fill.light_color = Color("b3d4cf")
+	fill.light_color = Color("bdcde5")
 	fill.light_energy = 0.7
 	fill.omni_range = 5.0
 	stage.add_child(fill)
 	preview = CharacterVisual.new()
+	preview.process_mode = Node.PROCESS_MODE_ALWAYS
 	stage.add_child(preview)
 	var camera := Camera3D.new()
 	camera.position = Vector3(1.1, 1.18, -2.8)

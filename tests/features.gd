@@ -65,13 +65,15 @@ func _run() -> void:
 	await frames()
 	var world: FactoryWorld = main.world
 	var player := world.player
-	check(player.body_visual.parts.size() >= 30, "Original modular character imports with all articulated body parts")
+	check(player.body_visual.skeleton != null and player.body_visual.skeleton.get_bone_count() >= 45, "Anatomical character imports with a continuous skinned skeleton and articulated fingers")
 	var textured := false
 	for mesh: MeshInstance3D in meshes(player.body_visual.parts.TorsoWork):
 		var material := mesh.get_active_material(0) as StandardMaterial3D
 		if material != null and material.albedo_texture != null:
 			textured = true
 	check(textured, "Workwear uses real imported fabric textures")
+	check((player.body_visual.parts.TorsoWork as MeshInstance3D).skin != null, "One continuous jacket is skinned across shoulders, elbows and wrists")
+	check((player.body_visual.parts.HeadSkin as MeshInstance3D).find_blend_shape_by_name("Blink") >= 0, "Anatomical eyelids include a real blink morph")
 	check(player.camera.cull_mask & 2 == 0 and player.camera.cull_mask & 4 != 0, "First-person camera hides the head and shows its own arms")
 	check(meshes(player.body_visual.parts.PelvisWork)[0].layers == 2 and player.camera.cull_mask & 8 == 0, "Full body remains in mirrors and cannot cover the gameplay camera with a waist cap")
 	check(world.mirrors.size() == 2, "Locker room contains two actual mirrors")
@@ -129,7 +131,7 @@ func _run() -> void:
 	lamp.advance(0.15)
 	await frames()
 	check(lamp.is_lit and player.torch.visible and lamp.press_amount > 0.8, "Light turns on during the visible button-press animation")
-	check(player.body_visual.thumb.position.y < -0.007 and player.view_arms.thumb.position.y < -0.007, "The gameplay and reflected thumbs physically depress the switch")
+	check(player.body_visual.thumb.get_blend_shape_value(0) > 0.8 and player.view_arms.thumb.get_blend_shape_value(0) > 0.8, "The continuous gameplay and reflected thumb skin deforms onto the switch")
 	lamp.advance(0.14)
 	await frames()
 	check(lamp.state == FlashlightController.State.ON and lamp.raise_amount == 1.0, "Flashlight reaches the stable held-on pose")
@@ -190,8 +192,11 @@ func _run() -> void:
 	await frames(3)
 	main.pause_game()
 	var elapsed: float = lamp.elapsed
+	var body_clock := player.body_visual.clock
+	var hand_clock := player.view_arms.motion_clock
 	await frames(10)
 	check(is_equal_approx(elapsed, lamp.elapsed), "Pause freezes an in-progress flashlight animation")
+	check(is_equal_approx(body_clock, player.body_visual.clock) and is_equal_approx(hand_clock, player.view_arms.motion_clock), "Pause also freezes breathing, gait and hand inertia")
 	main.resume_game()
 	await frames(60)
 	check(not world.events.enabled, "First shift does not accidentally run second-shift horror events")

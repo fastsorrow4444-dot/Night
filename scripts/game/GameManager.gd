@@ -1,5 +1,5 @@
 extends Node
-const BUILD_VERSION := "0.2.1"
+const BUILD_VERSION := "0.3.0"
 ## Persistent campaign data. Shift simulation lives in ShiftManager, not here.
 signal notification(message: String)
 signal session_started

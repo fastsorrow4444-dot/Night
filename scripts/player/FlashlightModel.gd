@@ -17,12 +17,27 @@ func _ready() -> void:
 	lens_material.emission_enabled = true
 	lens_material.emission = Color("ffdca0")
 	lens_material.emission_energy_multiplier = 0.0
-	button = WorldBuilder.box(self, Vector3(0, 0.036, 0.015), Vector3(0.026, 0.012, 0.028), Color("b68743"), false)
+	button = WorldBuilder.cylinder(self, Vector3(0, 0.036, 0.015), 0.012, 0.006, Color("14191b"))
 	WorldBuilder.box(self, Vector3(0.03, 0.004, 0.05), Vector3(0.009, 0.025, 0.12), Color("808b81"), false, 0.8)
 	set_render_layer(render_layer)
 
 func _cylinder(pos: Vector3, radius: float, length: float, color: Color) -> MeshInstance3D:
-	return WorldBuilder.cylinder(self, pos, radius, length, color, Vector3(PI / 2, 0, 0))
+	var mesh := MeshInstance3D.new()
+	var shape := CylinderMesh.new()
+	shape.top_radius = radius
+	shape.bottom_radius = radius
+	shape.height = length
+	shape.radial_segments = 64
+	mesh.mesh = shape
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.42
+	material.metallic = 0.65
+	mesh.material_override = material
+	add_child(mesh)
+	mesh.position = pos
+	mesh.rotation.x = PI / 2
+	return mesh
 
 func set_render_layer(value: int) -> void:
 	render_layer = value
